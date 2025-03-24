@@ -8,14 +8,14 @@ import (
 )
 
 func init() {
-	err := godotenv.Load();
+	err := godotenv.Load()
 	if err != nil {
-		panic("Error loading .env file");
+		panic("Error loading .env file")
 	}
-	fmt.Println("Environment variables loaded successfully");
+	fmt.Println("Environment variables loaded successfully")
 }
 
 func main() {
-	r := routes.SetupRouter();
-	r.Run();
+	r := routes.SetupRouter()
+	r.Run()
 }
