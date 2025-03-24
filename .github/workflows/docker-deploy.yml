@@ -1,12 +1,12 @@
 on:
   push:
     branches:
-      -main
-      -dev
+      - main
+      - dev
   pull_request:
     branches:
-      -main
-      -dev
+      - main
+      - dev
 jobs:
   deploy:
     runs-on: ubuntu-latest
