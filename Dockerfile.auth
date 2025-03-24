@@ -7,7 +7,7 @@ RUN go mod tidy
 
 COPY . .
 
-RUN go build -o auth-service ./cmd/auth
+RUN CGO_ENABLED=0 GOOS=linux go build -o auth-service ./cmd/auth
 
 #production
 FROM alpine:latest
