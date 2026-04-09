@@ -9,6 +9,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 
 	"neighbourly/server/internal/database"
@@ -90,14 +91,16 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert into DB
-	_, err = usersCollection.InsertOne(ctx, user)
+	res, err := usersCollection.InsertOne(ctx, user)
 	if err != nil {
 		sendAuthResponse(w, http.StatusInternalServerError, false, "Error creating user", "")
 		return
 	}
 
+	insertedID := res.InsertedID.(primitive.ObjectID)
+
 	// Generate JWT token
-	token, err := generateJWT(user.Email, user.Role)
+	token, err := generateJWT(insertedID.Hex(), user.Email, user.Role)
 	if err != nil {
 		sendAuthResponse(w, http.StatusInternalServerError, false, "User created but error generating token", "")
 		return
@@ -147,7 +150,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate JWT token
-	token, err := generateJWT(user.Email, user.Role)
+	token, err := generateJWT(user.ID.Hex(), user.Email, user.Role)
 	if err != nil {
 		sendAuthResponse(w, http.StatusInternalServerError, false, "Error generating token", "")
 		return
@@ -165,13 +168,14 @@ func sendAuthResponse(w http.ResponseWriter, status int, success bool, message, 
 	})
 }
 
-func generateJWT(email string, role string) (string, error) {
+func generateJWT(id string, email string, role string) (string, error) {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		jwtSecret = "my_super_secret_jwt_key_123" // Fallback secret
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":    id,
 		"email": email,
 		"role":  role,
 		"exp":   time.Now().Add(time.Hour * 72).Unix(),
